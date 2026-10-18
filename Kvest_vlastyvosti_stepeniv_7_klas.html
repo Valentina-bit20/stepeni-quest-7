@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Математичний квест — Королівство Степенів</title>
+<style>
+:root{--navy:#163b65;--blue:#2476c8;--cyan:#dff5ff;--gold:#ffd166;--green:#198754;--red:#c0392b;--paper:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#d9f1ff,#f7edff);color:#18324a}
+header{padding:28px 16px;text-align:center;background:linear-gradient(120deg,#164e86,#3188d8);color:white}
+header h1{margin:0 0 8px;font-size:clamp(1.5rem,4vw,2.5rem)} header p{margin:5px}
+main{max-width:900px;margin:20px auto;padding:0 14px 30px}
+.panel{background:white;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 8px 24px #12334a18}
+h2{color:var(--navy);margin-top:0}.progress{height:12px;background:#e7eef5;border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#2c9bdf,#25b78b);transition:width .3s}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.pill{background:#eaf5ff;border-radius:99px;padding:8px 13px;font-weight:bold}
+button{border:0;border-radius:11px;padding:11px 15px;background:var(--blue);color:white;font-weight:bold;cursor:pointer;font-size:1rem}button:hover{filter:brightness(.94)}button.secondary{background:#e9f0f7;color:#163b65}button.gold{background:#e9a900;color:#182b3b}
+.task{border:1px solid #dbe7f0;border-radius:14px;padding:14px;margin:12px 0;background:#fbfdff}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:12px}
+.option{padding:12px;border:2px solid #d6e2ed;border-radius:10px;background:white;color:#18324a;text-align:left}
+.option.selected{border-color:#2476c8;background:#eaf5ff}.option.correct{border-color:#198754;background:#e8f8ef}.option.wrong{border-color:#c0392b;background:#fff0ee}
+input[type=text]{width:100%;max-width:280px;padding:11px;border:1px solid #b9cbd9;border-radius:9px;font-size:1rem}
+.feedback{font-weight:bold;margin-top:10px;min-height:22px}.hidden{display:none}.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stage{padding:15px;border-radius:14px;background:#f0f7ff;border:1px solid #d9e8f7;text-align:center}
+.stage.done{background:#e5f8ed;border-color:#65bd8b}.stage .emoji{font-size:2rem}
+footer{text-align:center;color:#526a7c;font-size:.9rem;padding:20px}
+@media print{body{background:white}header{background:#164e86!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}button{display:none}.panel{box-shadow:none;border:1px solid #ddd}main{max-width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏰 Місія: врятувати Королівство Степенів!</h1>
+  <p>Інтерактивний математичний квест для 7 класу</p>
+  <p>Тема: властивості степенів із натуральними показниками</p>
+</header>
+<main>
+  <section class="panel" id="intro">
+    <h2>🧙 Легенда квесту</h2>
+    <p>Дракон Плутаник заховав 6 магічних ключів. Щоб відкрити скриню знань, пройди всі випробування, правильно застосовуй властивості степенів і збери якомога більше балів!</p>
+    <p><b>Правила:</b> обирай відповіді або вводь результат. За кожне завдання можна отримати 1 бал. Квест працює офлайн у браузері.</p>
+    <label for="student">Ім’я учня/учениці (необов’язково): </label><br><br>
+    <input id="student" type="text" placeholder="Введи своє ім’я">
+    <div style="margin-top:16px"><button onclick="startQuest()">Почати квест 🚀</button></div>
+  </section>
+
+  <section class="panel hidden" id="game">
+    <div class="stats"><span class="pill" id="stageLabel">Раунд 1 із 6</span><span class="pill" id="scoreLabel">Бали: 0</span><span class="pill" id="keysLabel">Ключі: 0/6</span></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div id="stageContent"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <button id="checkBtn" onclick="checkAnswer()">Перевірити відповідь</button>
+      <button id="nextBtn" class="gold hidden" onclick="nextStage()">Наступний раунд ➜</button>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="finish">
+    <h2>🎉 Скриню відкрито!</h2>
+    <p id="finishMessage"></p>
+    <div class="map" id="keyMap"></div>
+    <h3>Результат</h3><p id="finalScore"></p>
+    <p><b>Рефлексія:</b> Що сьогодні вдалося найкраще? Яке правило потрібно ще повторити?</p>
+    <button onclick="restart()">Пройти ще раз 🔄</button>
+    <button class="secondary" onclick="window.print()">Роздрукувати результат / зберегти PDF</button>
+  </section>
+
+  <section class="panel">
+    <h2>📚 Пам’ятка: властивості степенів</h2>
+    <div class="task"><b>Множення однакових основ:</b> aᵐ · aⁿ = aᵐ⁺ⁿ</div>
+    <div class="task"><b>Ділення однакових основ:</b> aᵐ : aⁿ = aᵐ⁻ⁿ (a ≠ 0, m ≥ n)</div>
+    <div class="task"><b>Степінь степеня:</b> (aᵐ)ⁿ = aᵐ·ⁿ</div>
+    <div class="task"><b>Степінь добутку:</b> (ab)ⁿ = aⁿbⁿ</div>
+    <div class="task"><b>Степінь частки:</b> (a/b)ⁿ = aⁿ/bⁿ (b ≠ 0)</div>
+  </section>
+</main>
+<footer>Навчальний матеріал для 7 класу • Математика — це пригода!</footer>
+<script>
+const stages = [
+ {title:"Раунд 1. 🔐 Розгадай код замка",desc:"Обери правильну відповідь.",q:"a⁴ · a³ = ?",type:"choice",opts:["a¹²","a⁷","a¹"],ans:1,why:"Під час множення степенів з однаковою основою показники додаємо: 4 + 3 = 7."},
+ {title:"Раунд 2. 🕵️ Математичний детектив",desc:"Яка рівність правильна?",q:"b⁹ : b⁴ = ?",type:"choice",opts:["b¹³","b⁵","b³⁶"],ans:1,why:"Під час ділення степенів з однаковою основою показники віднімаємо: 9 − 4 = 5."},
+ {title:"Раунд 3. ⚡ Сила степеня",desc:"Обери результат піднесення степеня до степеня.",q:"(c²)³ = ?",type:"choice",opts:["c⁵","c⁶","c⁸"],ans:1,why:"Показники перемножуємо: 2 · 3 = 6."},
+ {title:"Раунд 4. 🧩 Степінь добутку",desc:"Знайди правильне розкриття дужок.",q:"(2x)³ = ?",type:"choice",opts:["2x³","6x","8x³"],ans:2,why:"Підносимо до степеня кожний множник: 2³ · x³ = 8x³."},
+ {title:"Раунд 5. 🗝️ Скарб частки",desc:"Спрости вираз.",q:"12⁴ : 3⁴ = ?",type:"choice",opts:["4⁴ = 256","9⁴","4⁸"],ans:0,why:"Застосовуємо властивість степеня частки: (12 : 3)⁴ = 4⁴ = 256."},
+ {title:"Раунд 6. 🐉 Фінальна битва",desc:"Введи лише показник степеня.",q:"x⁵ · x² : x³ = xᵏ. Чому дорівнює k?",type:"input",ans:"4",why:"5 + 2 − 3 = 4, тому вираз дорівнює x⁴."}
+];
+let current=0,score=0,keys=0,locked=false,results=[];
+function startQuest(){document.getElementById('intro').classList.add('hidden');document.getElementById('game').classList.remove('hidden');renderStage();}
+function renderStage(){
+ locked=false;const s=stages[current];
+ document.getElementById('stageLabel').textContent=`Раунд ${current+1} із ${stages.length}`;
+ document.getElementById('scoreLabel').textContent=`Бали: ${score}`;
+ document.getElementById('keysLabel').textContent=`Ключі: ${keys}/6`;
+ document.getElementById('bar').style.width=`${current/stages.length*100}%`;
+ document.getElementById('feedback').textContent='';
+ document.getElementById('checkBtn').classList.remove('hidden');document.getElementById('nextBtn').classList.add('hidden');
+ let html=`<h2>${s.title}</h2><p>${s.desc}</p><div class="task"><h3>${s.q}</h3>`;
+ if(s.type==='choice'){html+='<div class="options">';s.opts.forEach((o,i)=>html+=`<button class="option" data-index="${i}" onclick="selectOption(this)">${o}</button>`);html+='</div>';}
+ else html+='<input id="answerInput" type="text" inputmode="numeric" placeholder="Твоя відповідь">';
+ html+='</div>';document.getElementById('stageContent').innerHTML=html;
+}
+function selectOption(btn){if(locked)return;document.querySelectorAll('.option').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
+function checkAnswer(){
+ if(locked)return;const s=stages[current];let correct=false;
+ if(s.type==='choice'){const el=document.querySelector('.option.selected');if(!el){document.getElementById('feedback').textContent='Спочатку обери відповідь 🙂';return;}correct=Number(el.dataset.index)===s.ans;document.querySelectorAll('.option').forEach((b,i)=>{if(i===s.ans)b.classList.add('correct');else if(b.classList.contains('selected'))b.classList.add('wrong');});}
+ else {const v=document.getElementById('answerInput').value.trim().replace(',','.');if(!v){document.getElementById('feedback').textContent='Введи відповідь 🙂';return;}correct=v===s.ans;}
+ locked=true;results.push(correct);if(correct){score++;keys++;document.getElementById('feedback').textContent='✅ Правильно! Ключ твій! '+s.why;}else{document.getElementById('feedback').textContent='❌ Цього разу ні. Правильна відповідь: '+(s.type==='choice'?s.opts[s.ans]:s.ans)+'. '+s.why;}
+ document.getElementById('scoreLabel').textContent=`Бали: ${score}`;document.getElementById('keysLabel').textContent=`Ключі: ${keys}/6`;
+ document.getElementById('checkBtn').classList.add('hidden');document.getElementById('nextBtn').classList.remove('hidden');document.getElementById('nextBtn').textContent=current===stages.length-1?'Побачити результат 🏆':'Наступний раунд ➜';
+}
+function nextStage(){current++;if(current>=stages.length){finishQuest();return;}renderStage();}
+function finishQuest(){
+ document.getElementById('game').classList.add('hidden');document.getElementById('finish').classList.remove('hidden');
+ const name=document.getElementById('student').value.trim();let title=score===6?'Майстер степенів! 🏆':score>=4?'Чарівник математичних правил! ✨':score>=2?'Шукач математичних скарбів! 🔎':'Початківець-мандрівник! 🌱';
+ document.getElementById('finishMessage').textContent=`${name?name+', ':''}${title} Дякуємо за участь у квесті!`;
+ document.getElementById('finalScore').textContent=`Твій результат: ${score} із 6 балів. Зібрано ключів: ${keys} із 6.`;
+ document.getElementById('bar').style.width='100%';
+ document.getElementById('keyMap').innerHTML=stages.map((s,i)=>`<div class="stage ${results[i]?'done':''}"><div class="emoji">${results[i]?'🔑':'🔒'}</div><b>Раунд ${i+1}</b><p>${results[i]?'Ключ отримано':'Спробуй ще раз'}</p></div>`).join('');
+}
+function restart(){current=0;score=0;keys=0;results=[];document.getElementById('finish').classList.add('hidden');document.getElementById('game').classList.remove('hidden');renderStage();}
+</script>
+</body>
+</html>
